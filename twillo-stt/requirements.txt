@@ -1,0 +1,7 @@
+Flask
+Flask-SocketIO
+twilio
+python-dotenv
+faster-whisper
+pydub
+audioop-lts

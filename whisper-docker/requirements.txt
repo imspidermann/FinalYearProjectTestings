@@ -1,0 +1,6 @@
+gradio==4.16.0
+faster-whisper==0.10.1
+sounddevice==0.4.6
+soundfile==0.12.1
+torch>=2.0.0
+numpy>=1.21.0

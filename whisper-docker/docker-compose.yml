@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  whisper-app:
+    build: .
+    container_name: whisper-speech-to-text
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./audio_files:/app/audio_files
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # For GUI access if needed
+    environment:
+      - DISPLAY=${DISPLAY}
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=7860
+    devices:
+      - /dev/snd:/dev/snd  # Audio devices
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

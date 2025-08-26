@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Phone Call Transcription</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 800px; margin: auto; padding: 2rem; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #4a4a4a; }
+        #transcription-box {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            min-height: 250px;
+            overflow-y: scroll;
+            margin-top: 1.5rem;
+            background-color: #fafafa;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📞 Live Call Transcription</h1>
+        <p>Call the Twilio number associated with this service to see a live transcription below. The transcription will update as the caller speaks.</p>
+        <div id="transcription-box">
+            Waiting for a call...
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        // Replace with your ngrok URL
+        const backendUrl = 'https://efc5a21767e0.ngrok-free.app';
+        
+        const transcriptionBox = document.getElementById('transcription-box');
+        
+        // Connect to the WebSocket endpoint on the backend
+        const socket = io(backendUrl);
+
+        socket.on('connect', () => {
+            console.log('Connected to backend WebSocket');
+            transcriptionBox.textContent = 'Waiting for a call...';
+        });
+
+        socket.on('transcription_update', (data) => {
+            console.log('Received transcription:', data.text);
+            transcriptionBox.textContent = data.text;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from backend WebSocket');
+            transcriptionBox.textContent = 'Disconnected. Refresh to reconnect.';
+        });
+    </script>
+</body>
+</html>

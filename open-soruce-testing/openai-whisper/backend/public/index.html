@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice Transcription Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh; padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header {
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+      border-radius: 20px; padding: 20px 30px; margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .header h1 { color: #fff; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,.3); }
+    .status { display: flex; gap: 20px; align-items: center; }
+    .status-item {
+      background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px;
+      color: #fff; font-weight: 500; border: 1px solid rgba(255,255,255,0.3);
+    }
+    .status-online { background: rgba(34,197,94,0.3); border-color: rgba(34,197,94,0.5); }
+    .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .panel {
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 20px;
+      padding: 25px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,.1);
+    }
+    .panel h2 { color: #fff; margin-bottom: 20px; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+    .call-info {
+      background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+    }
+    .call-info.active { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.1); }
+    .call-info h3 { color: #fff; margin-bottom: 10px; font-size: 1.2rem; }
+    .call-details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+    .detail-item { background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); }
+    .detail-label { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 5px; }
+    .detail-value { color: #fff; font-weight: 600; }
+    .transcription-area {
+      height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 15px;
+      padding: 20px; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .transcription-item {
+      background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 15px;
+      border-left: 4px solid #3b82f6; animation: slideIn .3s ease-out;
+    }
+    .transcription-item:last-child { border-left-color: #10b981; }
+    @keyframes slideIn { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+    .transcription-time { color: rgba(255,255,255,0.7); font-size: .9rem; margin-bottom: 8px; }
+    .transcription-text { color: #fff; line-height: 1.5; font-size: 1rem; }
+    .no-calls, .no-transcription { text-align: center; color: rgba(255,255,255,0.7); font-size: 1.1rem; padding: 40px; }
+    .no-transcription { color: rgba(255,255,255,0.5); font-style: italic; }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%{opacity:1} 50%{opacity:.5} 100%{opacity:1} }
+    .icon { width: 20px; height: 20px; fill: currentColor; }
+    @media (max-width: 768px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .call-details { grid-template-columns: 1fr; }
+      .header h1 { font-size: 2rem; }
+      .status { flex-direction: column; align-items: flex-start; }
+    }
+    .connection-status {
+      position: fixed; top: 20px; right: 20px; padding: 10px 15px; border-radius: 25px;
+      font-weight: 500; font-size: .9rem; z-index: 1000;
+    }
+    .connected { background: rgba(34,197,94,0.9); color: #fff; }
+    .disconnected { background: rgba(239,68,68,0.9); color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="connectionStatus" class="connection-status disconnected">Disconnected</div>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎙️ Voice Transcription Dashboard</h1>
+      <div class="status">
+        <div class="status-item status-online" id="systemStatus">
+          <svg class="icon" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3" fill="currentColor"/></svg>
+          System Online
+        </div>
+        <div class="status-item" id="activeCallsCount">Active Calls: 0</div>
+        <div class="status-item" id="lastUpdate">Last Update: Never</div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="panel">
+        <h2>
+          <svg class="icon" viewBox="0 0 20 20"><path fill="currentColor" d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+          Active Calls
+        </h2>
+        <div id="activeCalls"><div class="no-calls">No active calls</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>
+          <svg class="icon" viewBox="0 0 20 20"><path fill="currentColor" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Real-time Transcription
+        </h2>
+        <div class="transcription-area" id="transcriptionArea">
+          <div class="no-transcription">Waiting for transcription data...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class VoiceTranscriptionDashboard {
+      constructor() {
+        this.socket = null;
+        this.activeCalls = new Map();
+        this.currentCallSid = null;
+        this.transcriptions = [];
+        this.init();
+      }
+
+      init() {
+        this.connectWebSocket();
+        this.loadActiveCalls();
+        this.updateLastUpdate();
+        setInterval(() => this.updateLastUpdate(), 30000);
+        setInterval(() => this.updateActiveCallsDisplay(), 1000);
+      }
+
+      connectWebSocket() {
+        try {
+          this.socket = io();
+
+          this.socket.on('connect', () => {
+            console.log('Connected to server');
+            this.updateConnectionStatus(true);
+          });
+
+          this.socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            this.updateConnectionStatus(false);
+          });
+
+          this.socket.on('call_started', (data) => {
+            console.log('New call started:', data);
+            this.handleNewCall(data);
+          });
+
+          this.socket.on('call_ended', (data) => {
+            console.log('Call ended:', data);
+            this.handleCallEnded(data);
+          });
+
+          this.socket.on('new_transcription', (data) => {
+            // If you want per-call filtering, check data.callSid === this.currentCallSid
+            this.handleNewTranscription(data);
+          });
+
+        } catch (error) {
+          console.error('WebSocket connection error:', error);
+          this.updateConnectionStatus(false);
+        }
+      }
+
+      updateConnectionStatus(connected) {
+        const statusEl = document.getElementById('connectionStatus');
+        statusEl.textContent = connected ? 'Connected' : 'Disconnected';
+        statusEl.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+      }
+
+      async loadActiveCalls() {
+        try {
+          const res = await fetch('/api/calls/active');
+          const calls = await res.json();
+          this.activeCalls.clear();
+          calls.forEach(c => this.activeCalls.set(c.call_sid, c));
+          this.updateActiveCallsDisplay();
+          this.updateActiveCallsCount();
+        } catch (e) {
+          console.error('Error loading active calls:', e);
+        }
+      }
+
+      handleNewCall(data) {
+        const call = {
+          call_sid: data.callSid,
+          caller_number: data.callerNumber,
+          started_at: new Date(data.timestamp).toISOString(),
+          status: 'active',
+        };
+        this.activeCalls.set(data.callSid, call);
+        this.currentCallSid = data.callSid;
+        this.transcriptions = [];
+        this.updateActiveCallsDisplay();
+        this.updateActiveCallsCount();
+        this.updateTranscriptionDisplay();
+      }
+
+      handleCallEnded(data) {
+        this.activeCalls.delete(data.callSid);
+        if (this.currentCallSid === data.callSid) {
+          this.currentCallSid = null;
+        }
+        this.updateActiveCallsDisplay();
+        this.updateActiveCallsCount();
+      }
+
+      handleNewTranscription(data) {
+        const item = {
+          callSid: data.callSid,
+          text: data.transcription,
+          timestamp: data.timestamp,
+          callerNumber: data.callerNumber,
+        };
+        this.transcriptions.push(item);
+        this.updateTranscriptionDisplay();
+        this.updateLastUpdate();
+      }
+
+      updateActiveCallsDisplay() {
+        const container = document.getElementById('activeCalls');
+        if (this.activeCalls.size === 0) {
+          container.innerHTML = '<div class="no-calls">No active calls</div>';
+          return;
+        }
+        let html = '';
+        this.activeCalls.forEach(call => {
+          const startTime = new Date(call.started_at);
+          const durSec = Math.floor((Date.now() - startTime.getTime()) / 1000);
+          html += `
+            <div class="call-info active" onclick="dashboard.selectCall('${call.call_sid}')">
+              <h3>📞 ${call.caller_number}</h3>
+              <div class="call-details">
+                <div class="detail-item">
+                  <div class="detail-label">Call ID</div>
+                  <div class="detail-value">${call.call_sid.slice(-8)}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Duration</div>
+                  <div class="detail-value pulse">${this.formatDuration(durSec)}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Started</div>
+                  <div class="detail-value">${startTime.toLocaleTimeString()}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value">🟢 Active</div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      }
+
+      updateTranscriptionDisplay() {
+        const container = document.getElementById('transcriptionArea');
+        if (this.transcriptions.length === 0) {
+          container.innerHTML = '<div class="no-transcription">Waiting for transcription data...</div>';
+          return;
+        }
+        let html = '';
+        this.transcriptions.slice(-30).forEach(t => {
+          const time = new Date(t.timestamp);
+          html += `
+            <div class="transcription-item">
+              <div class="transcription-time">${time.toLocaleTimeString()} - ${t.callerNumber}</div>
+              <div class="transcription-text">${this.escapeHtml(t.text)}</div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+      }
+
+      updateActiveCallsCount() {
+        document.getElementById('activeCallsCount').textContent =
+          `Active Calls: ${this.activeCalls.size}`;
+      }
+
+      updateLastUpdate() {
+        document.getElementById('lastUpdate').textContent =
+          `Last Update: ${new Date().toLocaleTimeString()}`;
+      }
+
+      selectCall(callSid) {
+        this.currentCallSid = callSid;
+        console.log('Selected call:', callSid);
+      }
+
+      formatDuration(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return h > 0
+          ? `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`
+          : `${m}:${s.toString().padStart(2,'0')}`;
+      }
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    }
+
+    // Global instance
+    const dashboard = new VoiceTranscriptionDashboard();
+    window.dashboard = dashboard;
+  </script>
+</body>
+</html>

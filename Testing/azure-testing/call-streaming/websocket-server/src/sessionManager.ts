@@ -10,6 +10,9 @@ const AZURE_KEY = process.env.AZURE_SPEECH_KEY || "";
 const AZURE_REGION = process.env.AZURE_SPEECH_REGION || "";
 const TRANSCRIPTS_FILE = process.env.TRANSCRIPTS_FILE || "./data/transcripts.json";
 
+const SUPPORTED_LANGUAGES = ["en-US", "hi-IN", "mr-IN"];
+
+
 let session: Session = {};
 
 export function handleCallConnection(ws : WebSocket){
@@ -66,15 +69,17 @@ function handleTwilioMessage(data: RawData){
             session.azureRecognizer = new AzureRecognizer({
                 azureKey: AZURE_KEY,
                 azureRegion: AZURE_REGION,
+                candidateLanguages: SUPPORTED_LANGUAGES,
             });
 
             // wire azure events -> frontend + persistence
             session.azureRecognizer.on("partial", (ev: any) => {
-                console.log("Hellooo")
-                console.log(`[Partial] ${ev.text}`);
+                // console.log("Hellooo")
+                console.log(`[Partial] ${ev.text} (${ev.language})`);
                 jsonSend(session.frontendConn, {
                     type: "partial_transcript",
                     text: ev.text,
+                    language: ev.language,
                     timeStamp: Date.now(),
                 });
             });
@@ -83,12 +88,14 @@ function handleTwilioMessage(data: RawData){
                 const rec = {
                 streamSid : session.streamSid,
                 text: ev.text,
+                language: ev.language,
                 timestamp: new Date().toISOString(),
+                // type: "final",
             };
 
                 // save to file
-                console.log("Byeee");
-                console.log(`[Final] ${ev.text}`); 
+                // console.log("Byeee");
+                console.log(`[Final] ${ev.text} (${ev.language})`); 
                 appendTranscriptionRecord(TRANSCRIPTS_FILE, rec);
 
                 jsonSend(session.frontendConn, {
@@ -97,12 +104,41 @@ function handleTwilioMessage(data: RawData){
                 });
             });
 
+            // language detection
+            session.azureRecognizer.on("language_detected", (ev: any) => {
+                session.detectedLanguage = ev.language;
+                console.log(`[Language] ${ev.language} (${ev.confidence})`);
+
+                jsonSend(session.frontendConn, {
+                    type: "language_detected",
+                    language: ev.language,
+                    streamSid: session.streamSid,
+                    timestamp: new Date().toISOString(),
+                });
+
+                // save to file
+                const langRecord = {
+                    streamSid: session.streamSid,
+                    language: ev.language,
+                    timestamp: new Date().toISOString(),
+                    type: "language_detected",
+                };
+                appendTranscriptionRecord(TRANSCRIPTS_FILE, langRecord);
+            });
+
             session.azureRecognizer.on("error", (err: any) => {
                 console.log("Azure error: ", err);
                 jsonSend(session.frontendConn, {
                     type:"error",
                     message: String(err)
                 });
+            });
+
+            jsonSend(session.frontendConn, {
+                type: "session_started",
+                streamSid: session.streamSid,
+                supportedLanguages: SUPPORTED_LANGUAGES,
+                timestamp: new Date().toISOString(),
             });
 
             break;
@@ -138,9 +174,12 @@ function handleTwilioMessage(data: RawData){
             //inform frontend 
             jsonSend(session.frontendConn, {
                 type : "call_stopped",
-                streamSid: session.streamSid
+                streamSid: session.streamSid,
+                detectedLanguage: session.detectedLanguage,
+                timestamp: new Date().toISOString(),
             });
             session.streamSid = undefined;
+            session.detectedLanguage = undefined;
             break;
         }
 

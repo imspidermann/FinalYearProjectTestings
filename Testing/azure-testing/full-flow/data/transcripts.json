@@ -1,0 +1,200 @@
+[
+  {
+    "role": "user_partial",
+    "text": "hello",
+    "timestamp": "2025-09-01T19:05:49.488Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "Hello.",
+    "timestamp": "2025-09-01T19:05:49.621Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:05:50.633Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you",
+    "timestamp": "2025-09-01T19:06:04.499Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain",
+    "timestamp": "2025-09-01T19:06:04.855Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what",
+    "timestamp": "2025-09-01T19:06:05.288Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what is",
+    "timestamp": "2025-09-01T19:06:05.616Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what is universe",
+    "timestamp": "2025-09-01T19:06:05.949Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "Can you explain me what is universe?",
+    "timestamp": "2025-09-01T19:06:06.190Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:06:09.015Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what's",
+    "timestamp": "2025-09-01T19:06:18.129Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what's your name",
+    "timestamp": "2025-09-01T19:06:18.294Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "What's your name?",
+    "timestamp": "2025-09-01T19:06:18.890Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:06:20.030Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what",
+    "timestamp": "2025-09-01T19:06:28.446Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what can i call you",
+    "timestamp": "2025-09-01T19:06:29.516Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what can i call you can you can",
+    "timestamp": "2025-09-01T19:06:29.598Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what can i call you can you can i call",
+    "timestamp": "2025-09-01T19:06:30.155Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what can i call you can you can i call you",
+    "timestamp": "2025-09-01T19:06:30.423Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "What can I call you? Can you? Can I call you mine?",
+    "timestamp": "2025-09-01T19:06:30.595Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:06:32.302Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "OK",
+    "timestamp": "2025-09-01T19:06:41.409Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "OK thank you bye",
+    "timestamp": "2025-09-01T19:06:41.722Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "OK. Thank you. Bye.",
+    "timestamp": "2025-09-01T19:06:42.078Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:06:43.029Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "my name is",
+    "timestamp": "2025-09-01T19:06:50.677Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "my name is sahil",
+    "timestamp": "2025-09-01T19:06:51.351Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "My name is Sahil.",
+    "timestamp": "2025-09-01T19:06:51.864Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:06:52.981Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what is my",
+    "timestamp": "2025-09-01T19:06:59.462Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user_partial",
+    "text": "what is my name",
+    "timestamp": "2025-09-01T19:06:59.540Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "user",
+    "text": "What is my name?",
+    "timestamp": "2025-09-01T19:06:59.896Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  },
+  {
+    "role": "assistant",
+    "text": "",
+    "timestamp": "2025-09-01T19:07:00.669Z",
+    "streamSid": "MZde90048298ed7b8afa22bb4a16c2fcd2"
+  }
+]

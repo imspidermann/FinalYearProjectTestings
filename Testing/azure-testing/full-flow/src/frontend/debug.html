@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Call Agent Debug</title>
+  <style>
+    body{font-family: system-ui; padding: 12px}
+    pre{white-space: pre-wrap; background:#111; color:#d1d1d1; padding:10px; border-radius:6px; max-height:70vh; overflow:auto}
+  </style>
+</head>
+<body>
+  <h3>Call Agent Debug</h3>
+  <div>
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+  </div>
+  <pre id="log"></pre>
+  <script>
+    let ws;
+    const logEl = document.getElementById('log');
+    function log(msg){ logEl.textContent = (new Date()).toISOString() + " - " + msg + "\n\n" + logEl.textContent; }
+    document.getElementById('connect').onclick = () => {
+      const url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/logs';
+      ws = new WebSocket(url);
+      ws.onopen = () => { log("connected"); document.getElementById('connect').disabled = true; document.getElementById('disconnect').disabled = false; }
+      ws.onmessage = (ev) => { log(ev.data); }
+      ws.onclose = () => { log("closed"); document.getElementById('connect').disabled = false; document.getElementById('disconnect').disabled = true; }
+    };
+    document.getElementById('disconnect').onclick = () => { if(ws) ws.close(); };
+  </script>
+</body>
+</html>

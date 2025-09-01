@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="alice">Welcome! Press 1 for an English story or 2 for a Hindi story.</Say>
+    <Gather input="dtmf" timeout="10" numDigits="1">
+        <Say voice="alice">Please press a number.</Say>
+    </Gather>
+    <Connect>
+        <Stream url="{{WS_URL}}" />
+    </Connect>
+</Response>

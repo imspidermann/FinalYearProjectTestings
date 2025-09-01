@@ -141,6 +141,8 @@ function handleTwilioMessage(data: RawData) {
 async function handleFinalTranscript(userText: string) {
   if (!session.twilioConn || !session.streamSid) return;
 
+  console.log("hello handle final transcript")
+
   const voice = process.env.VOICE_EN || "en-IN-PrabhatNeural";
   const prompt = `You are a concise helpful voice assistant. Keep the reply ~30 seconds. User said: "${userText}"`;
 
@@ -153,9 +155,11 @@ async function handleFinalTranscript(userText: string) {
   let bufferText = "";
 
   try {
+    // console.log("hello from try")
     for await (const textChunk of streamLLM(prompt)) {
       fullAssistantText += textChunk;
       bufferText += textChunk;
+      // console.log("hello from for loop")
 
       jsonSend(session.frontendConn, {
         type: "response.delta",
@@ -164,13 +168,15 @@ async function handleFinalTranscript(userText: string) {
       });
 
       if (/[.?!]\s$/.test(bufferText)) {
-        await speakAndSend(bufferText.trim(), voice, tts, itemId);
+        // console.log("helllloooooo")
+        await speakAndSend("Hello, this is a test", voice, tts, "test1");
         bufferText = "";
       }
     }
 
     if (bufferText) {
-      await speakAndSend(bufferText.trim(), voice, tts, itemId);
+      // console.log("helllllooooooooooo")
+      await speakAndSend("Hello, this is a test", voice, tts, "test1");
     }
 
     jsonSend(session.frontendConn, {
@@ -194,18 +200,28 @@ async function handleFinalTranscript(userText: string) {
     console.error("Error in LLM/TTS pipeline:", err);
     jsonSend(session.frontendConn, { type: "error", message: String(err) });
   } finally {
+    // console.log("from finally")
     session.responseStartTimestamp = undefined;
   }
 }
 
-async function speakAndSend(text: string, voice: string, tts: AzureTTSClient, itemId: string) {
+export async function speakAndSend(
+  text: string,
+  voice: string,
+  tts: AzureTTSClient,
+  itemId: string
+) {
+  console.log("From speakAndSend:", text);
+
   const { promise, cancel } = tts.synthesizeTextStream(text, voice, (b64) => {
+    // Twilio Media Stream
     jsonSend(session.twilioConn, {
       event: "media",
       streamSid: session.streamSid,
       media: { payload: b64 },
     });
 
+    // Frontend preview
     jsonSend(session.frontendConn, {
       type: "response.audio.delta",
       item_id: itemId,
@@ -218,6 +234,7 @@ async function speakAndSend(text: string, voice: string, tts: AzureTTSClient, it
   await promise;
   session.currentTTSCancel = null;
 }
+
 
 /* ---------- helpers ---------- */
 function cleanupConnection(ws?: WebSocket) {

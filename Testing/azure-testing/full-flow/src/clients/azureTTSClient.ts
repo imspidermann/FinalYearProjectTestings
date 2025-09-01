@@ -1,22 +1,50 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import { stripRiffHeaderToRawMulaw } from "../utils/audioUtils";
 
-export class AzureTTSClient {
-  private key: string;
-  private region: string;
+// Convert PCM16 -> 8-bit µ-law
+function pcm16ToMulawSample(sample: number): number {
+  const MULAW_MAX = 0x1fff;
+  const MULAW_BIAS = 33;
 
-  constructor(key: string, region: string) {
-    this.key = key;
-    this.region = region;
-    if (!this.key || !this.region) {
-      console.warn("Azure TTS key/region missing");
-    }
+  let sign = sample < 0 ? 0x80 : 0;
+  if (sample < 0) sample = -sample;
+  sample = Math.min(sample, MULAW_MAX);
+
+  let exponent = 7;
+  for (
+    let expMask = 0x4000;
+    (sample & expMask) === 0 && exponent > 0;
+    expMask >>= 1
+  ) {
+    exponent--;
   }
 
-  /**
-   * Synthesize text incrementally. Returns { promise, cancel }.
-   * onAudioChunk receives base64 (raw µ-law 8k) chunks ready for Twilio media.
-   */
+  let mantissa = (sample >> (exponent + 3)) & 0x0f;
+  return ~(sign | (exponent << 4) | mantissa) & 0xff;
+}
+
+function pcm16ToMulawBuffer(pcm16: Buffer): Buffer {
+  const out = Buffer.alloc(pcm16.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    const sample = pcm16.readInt16LE(i * 2);
+    out[i] = pcm16ToMulawSample(sample);
+  }
+  return out;
+}
+
+// Remove RIFF header from PCM16 WAV
+function stripRiffHeader(buf: Buffer): Buffer {
+  // RIFF header is 44 bytes
+  if (buf.length > 44) return buf.slice(44);
+  return buf;
+}
+
+export class AzureTTSClient {
+  private synthesizer: sdk.SpeechSynthesizer | null = null;
+
+  constructor(private key: string, private region: string) {
+    if (!key || !region) console.warn("Azure TTS key/region missing");
+  }
+
   synthesizeTextStream(
     text: string,
     voiceName: string,
@@ -26,61 +54,67 @@ export class AzureTTSClient {
       return { promise: Promise.resolve(), cancel: () => {} };
     }
 
-    const speechConfig = sdk.SpeechConfig.fromSubscription(this.key, this.region);
-    // prefer Raw8Khz8BitMonoMULaw when available
+    const speechConfig = sdk.SpeechConfig.fromSubscription(
+      this.key,
+      this.region
+    );
+    speechConfig.speechSynthesisVoiceName = voiceName || "en-IN-PrabhatNeural";
+    // Use PCM16 so we can convert manually
     // @ts-ignore
-    const rawFormat = sdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw;
-    // @ts-ignore
-    const riffFormat = sdk.SpeechSynthesisOutputFormat.Riff8Khz8BitMonoMULaw;
-    // If Raw exists use it; otherwise use RIFF and strip header
-    // @ts-ignore
-    speechConfig.speechSynthesisOutputFormat = rawFormat ? rawFormat : riffFormat;
+    speechConfig.speechSynthesisOutputFormat =
+      sdk.SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm;
 
-    if (voiceName) speechConfig.speechSynthesisVoiceName = voiceName;
+    this.synthesizer = new sdk.SpeechSynthesizer(speechConfig);
 
-    let synthesizer: any = null;
-    const p = new Promise<void>((resolve, reject) => {
-      synthesizer = new sdk.SpeechSynthesizer(speechConfig, undefined);
+    let cancelled = false;
+    const cancel = () => {
+      cancelled = true;
+      try {
+        this.synthesizer?.close();
+      } catch {}
+    };
 
-      // some SDK versions expose a 'synthesizing' event
+    const promise = new Promise<void>((resolve, reject) => {
+      // Incremental audio events
       // @ts-ignore
-      synthesizer.synthesizing = (s: any, e: any) => {
+      this.synthesizer.synthesizing = (_s, e) => {
+        if (cancelled) return;
         try {
-          const audioChunk = e?.result?.audioChunk;
+          // e.result.audioData is the incremental audio chunk (Uint8Array / Buffer)
+          const audioChunk = e.result.audioData;
           if (!audioChunk) return;
-          const buf = Buffer.from(audioChunk);
-          const raw = stripRiffHeaderToRawMulaw(buf);
-          onAudioChunk(raw.toString("base64"));
+
+          const buf = Buffer.from(audioChunk); // convert to Node.js Buffer
+          const pcm16 = stripRiffHeader(buf); // remove RIFF header
+          const mulaw = pcm16ToMulawBuffer(pcm16); // convert PCM16 -> µ-law
+          onAudioChunk(mulaw.toString("base64"));
         } catch (err) {
-          // ignore
+          console.error("Error in synthesizing event:", err);
         }
       };
 
-      synthesizer.speakTextAsync(
+      this.synthesizer?.speakTextAsync(
         text,
         (result: any) => {
           try {
-            // Some SDKs provide final audio data in result.audioData
-            if (result && (result.audioData || result.audio)) {
-              const rawBuf = stripRiffHeaderToRawMulaw(Buffer.from(result.audioData || result.audio));
-              onAudioChunk(rawBuf.toString("base64"));
+            if (result && result.audioData) {
+              const pcm16 = stripRiffHeader(Buffer.from(result.audioData));
+              const mulaw = pcm16ToMulawBuffer(pcm16);
+              onAudioChunk(mulaw.toString("base64"));
             }
-          } catch (err) {}
-          synthesizer.close();
+          } catch (err) {
+            console.error("Error in final TTS callback:", err);
+          }
+          this.synthesizer?.close();
           resolve();
         },
         (err: any) => {
-          try { synthesizer.close(); } catch {}
+          this.synthesizer?.close();
           reject(err);
         }
       );
     });
 
-    const cancel = () => {
-      try {
-        if (synthesizer) synthesizer.close();
-      } catch {}
-    };
-    return { promise: p, cancel };
+    return { promise, cancel };
   }
 }

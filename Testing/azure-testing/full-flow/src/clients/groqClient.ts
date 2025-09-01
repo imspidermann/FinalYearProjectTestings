@@ -53,7 +53,7 @@ export async function* streamLLM(prompt: string): AsyncGenerator<string> {
 
   for await (const chunk of response.data) {
     const str = chunk.toString();
-    console.log("[Groq RAW CHUNK]", str.trim());
+    // console.log("[Groq RAW CHUNK]", str.trim());
     parser.feed(str);
 
     while (buffer.length) {

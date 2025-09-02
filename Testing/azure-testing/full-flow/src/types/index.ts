@@ -9,9 +9,11 @@ export interface Session {
   latestMediaTimestamp?: number;
   lastAssistantItem?: string | undefined;
   responseStartTimestamp?: number | undefined;
+  isAssistantSpeaking?: boolean;
+  mediaChunkCount?: number;
 }
 
-interface EventSourceMessage {
+export interface EventSourceMessage {
   data: string;
   event: string;
   id: string;

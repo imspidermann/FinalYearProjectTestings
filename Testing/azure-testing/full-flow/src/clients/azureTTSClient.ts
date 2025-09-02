@@ -1,8 +1,9 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
+import { stripRiffHeaderToRawMulaw } from "../utils/audioUtils";
 
-// Convert PCM16 -> 8-bit µ-law
+// Convert PCM16 -> 8-bit Âµ-law for Twilio
 function pcm16ToMulawSample(sample: number): number {
-  const MULAW_MAX = 0x1fff;
+  const MULAW_MAX = 0x1FFF;
   const MULAW_BIAS = 33;
 
   let sign = sample < 0 ? 0x80 : 0;
@@ -10,16 +11,12 @@ function pcm16ToMulawSample(sample: number): number {
   sample = Math.min(sample, MULAW_MAX);
 
   let exponent = 7;
-  for (
-    let expMask = 0x4000;
-    (sample & expMask) === 0 && exponent > 0;
-    expMask >>= 1
-  ) {
+  for (let expMask = 0x4000; (sample & expMask) === 0 && exponent > 0; expMask >>= 1) {
     exponent--;
   }
 
-  let mantissa = (sample >> (exponent + 3)) & 0x0f;
-  return ~(sign | (exponent << 4) | mantissa) & 0xff;
+  let mantissa = (sample >> (exponent + 3)) & 0x0F;
+  return ~(sign | (exponent << 4) | mantissa) & 0xFF;
 }
 
 function pcm16ToMulawBuffer(pcm16: Buffer): Buffer {
@@ -31,18 +28,16 @@ function pcm16ToMulawBuffer(pcm16: Buffer): Buffer {
   return out;
 }
 
-// Remove RIFF header from PCM16 WAV
-function stripRiffHeader(buf: Buffer): Buffer {
-  // RIFF header is 44 bytes
-  if (buf.length > 44) return buf.slice(44);
-  return buf;
-}
-
 export class AzureTTSClient {
-  private synthesizer: sdk.SpeechSynthesizer | null = null;
+  private key: string;
+  private region: string;
 
-  constructor(private key: string, private region: string) {
-    if (!key || !region) console.warn("Azure TTS key/region missing");
+  constructor(key: string, region: string) {
+    this.key = key;
+    this.region = region;
+    if (!this.key || !this.region) {
+      console.warn("Azure TTS key/region missing");
+    }
   }
 
   synthesizeTextStream(
@@ -54,67 +49,56 @@ export class AzureTTSClient {
       return { promise: Promise.resolve(), cancel: () => {} };
     }
 
-    const speechConfig = sdk.SpeechConfig.fromSubscription(
-      this.key,
-      this.region
-    );
-    speechConfig.speechSynthesisVoiceName = voiceName || "en-IN-PrabhatNeural";
-    // Use PCM16 so we can convert manually
+    const speechConfig = sdk.SpeechConfig.fromSubscription(this.key, this.region);
+    speechConfig.speechSynthesisVoiceName = voiceName || "en-IN-NeerjaNeural";
+    // 8 kHz PCM16 for Twilio
     // @ts-ignore
-    speechConfig.speechSynthesisOutputFormat =
-      sdk.SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm;
+    speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Riff8Khz16BitMonoPcm;
 
-    this.synthesizer = new sdk.SpeechSynthesizer(speechConfig);
+    let synthesizer: sdk.SpeechSynthesizer | null = null;
 
-    let cancelled = false;
-    const cancel = () => {
-      cancelled = true;
-      try {
-        this.synthesizer?.close();
-      } catch {}
-    };
+    const p = new Promise<void>((resolve, reject) => {
+      synthesizer = new sdk.SpeechSynthesizer(speechConfig, undefined);
 
-    const promise = new Promise<void>((resolve, reject) => {
-      // Incremental audio events
-      // @ts-ignore
-      this.synthesizer.synthesizing = (_s, e) => {
-        if (cancelled) return;
-        try {
-          // e.result.audioData is the incremental audio chunk (Uint8Array / Buffer)
-          const audioChunk = e.result.audioData;
-          if (!audioChunk) return;
-
-          const buf = Buffer.from(audioChunk); // convert to Node.js Buffer
-          const pcm16 = stripRiffHeader(buf); // remove RIFF header
-          const mulaw = pcm16ToMulawBuffer(pcm16); // convert PCM16 -> µ-law
-          onAudioChunk(mulaw.toString("base64"));
-        } catch (err) {
-          console.error("Error in synthesizing event:", err);
-        }
-      };
-
-      this.synthesizer?.speakTextAsync(
+      synthesizer.speakTextAsync(
         text,
-        (result: any) => {
+        result => {
           try {
-            if (result && result.audioData) {
-              const pcm16 = stripRiffHeader(Buffer.from(result.audioData));
+            if (result.audioData) {
+              const pcm16 = stripRiffHeaderToRawMulaw(Buffer.from(result.audioData));
               const mulaw = pcm16ToMulawBuffer(pcm16);
-              onAudioChunk(mulaw.toString("base64"));
+
+              // Chunk audio for Twilio
+              const MAX_CHUNK = 3200;
+              for (let i = 0; i < mulaw.length; i += MAX_CHUNK) {
+                const chunk = mulaw.slice(i, i + MAX_CHUNK);
+                onAudioChunk(chunk.toString("base64"));
+              }
             }
+
+            // Signal end of stream
+            onAudioChunk("");
+
+            console.log("TTS finished sending all chunks.");
           } catch (err) {
-            console.error("Error in final TTS callback:", err);
+            console.error("TTS error:", err);
+          } finally {
+            synthesizer?.close();
+            resolve();
           }
-          this.synthesizer?.close();
-          resolve();
         },
-        (err: any) => {
-          this.synthesizer?.close();
+        err => {
+          try { synthesizer?.close(); } catch {}
           reject(err);
         }
       );
     });
 
-    return { promise, cancel };
+    const cancel = () => {
+      try { synthesizer?.close(); } catch {}
+    };
+
+    return { promise: p, cancel };
   }
 }
+

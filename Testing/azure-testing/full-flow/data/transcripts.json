@@ -2,263 +2,43 @@
   {
     "role": "user_partial",
     "text": "hello",
-    "timestamp": "2025-09-01T19:26:52.180Z",
-    "streamSid": "MZ1fa2297e79dfdf06bf7eeb2d043570bd"
+    "timestamp": "2025-09-02T06:49:10.893Z",
+    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
   },
   {
     "role": "user",
     "text": "Hello.",
-    "timestamp": "2025-09-01T19:26:52.779Z",
-    "streamSid": "MZ1fa2297e79dfdf06bf7eeb2d043570bd"
+    "timestamp": "2025-09-02T06:49:11.443Z",
+    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
   },
   {
     "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:26:53.428Z",
-    "streamSid": "MZ1fa2297e79dfdf06bf7eeb2d043570bd"
+    "text": "\"Hey, how can I help you today?\"",
+    "timestamp": "2025-09-02T06:49:17.524Z",
+    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
   },
   {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:28:08.626Z",
-    "streamSid": "MZ814e93556ae25b6500e017e5ecc32b32"
+    "role": "user",
+    "text": "",
+    "timestamp": "2025-09-02T06:49:37.498Z",
+    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
+  },
+  {
+    "role": "assistant",
+    "text": "I didn't quite catch that, could you please repeat or provide more context about what you're looking for help with?",
+    "timestamp": "2025-09-02T06:49:52.647Z",
+    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
   },
   {
     "role": "user",
     "text": "Hello.",
-    "timestamp": "2025-09-01T19:28:08.630Z",
-    "streamSid": "MZ814e93556ae25b6500e017e5ecc32b32"
+    "timestamp": "2025-09-02T06:51:11.510Z",
+    "streamSid": "MZc1c7db0ed03e83e4088677242be6b5f3"
   },
   {
     "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:28:09.347Z",
-    "streamSid": "MZ814e93556ae25b6500e017e5ecc32b32"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:32:28.446Z",
-    "streamSid": "MZ74a400afe84ae3b4d33490823fc19403"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:32:28.577Z",
-    "streamSid": "MZ74a400afe84ae3b4d33490823fc19403"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:32:29.189Z",
-    "streamSid": "MZ74a400afe84ae3b4d33490823fc19403"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:34:12.352Z",
-    "streamSid": "MZe0701de735ba947b6b4b762af5d0a48a"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:34:12.361Z",
-    "streamSid": "MZe0701de735ba947b6b4b762af5d0a48a"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:34:13.118Z",
-    "streamSid": "MZe0701de735ba947b6b4b762af5d0a48a"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:39:07.691Z",
-    "streamSid": "MZdd6568fd834a0c3152a6bf1f9161e191"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:39:07.693Z",
-    "streamSid": "MZdd6568fd834a0c3152a6bf1f9161e191"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:39:08.428Z",
-    "streamSid": "MZdd6568fd834a0c3152a6bf1f9161e191"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:41:43.491Z",
-    "streamSid": "MZ67721c7b4666fb60f08fd2a9a81a6b85"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:41:44.180Z",
-    "streamSid": "MZ67721c7b4666fb60f08fd2a9a81a6b85"
-  },
-  {
-    "role": "user",
-    "text": "",
-    "timestamp": "2025-09-01T19:41:58.609Z"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:43:21.490Z",
-    "streamSid": "MZd74fd73b54f36d78cc810cab46ad732b"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:43:21.576Z",
-    "streamSid": "MZd74fd73b54f36d78cc810cab46ad732b"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:43:22.292Z",
-    "streamSid": "MZd74fd73b54f36d78cc810cab46ad732b"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:44:22.314Z",
-    "streamSid": "MZa5a3caf03bd3dd990443b624eedc6fa0"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:44:22.724Z",
-    "streamSid": "MZa5a3caf03bd3dd990443b624eedc6fa0"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:44:23.447Z",
-    "streamSid": "MZa5a3caf03bd3dd990443b624eedc6fa0"
-  },
-  {
-    "role": "user",
-    "text": "",
-    "timestamp": "2025-09-01T19:44:42.641Z",
-    "streamSid": "MZa5a3caf03bd3dd990443b624eedc6fa0"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:44:43.115Z",
-    "streamSid": "MZa5a3caf03bd3dd990443b624eedc6fa0"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:46:47.060Z",
-    "streamSid": "MZe4de9269c505046d7881ce5e4424e8c7"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:46:47.574Z",
-    "streamSid": "MZe4de9269c505046d7881ce5e4424e8c7"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:48:01.861Z",
-    "streamSid": "MZfb65eb2e5c87638a0ab65561ae7f1755"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:48:01.886Z",
-    "streamSid": "MZfb65eb2e5c87638a0ab65561ae7f1755"
-  },
-  {
-    "role": "assistant",
-    "text": "",
-    "timestamp": "2025-09-01T19:48:02.584Z",
-    "streamSid": "MZfb65eb2e5c87638a0ab65561ae7f1755"
-  },
-  {
-    "role": "user_partial",
-    "text": "hello",
-    "timestamp": "2025-09-01T19:49:28.003Z",
-    "streamSid": "MZ3e5e0e0ac62f0eba8055650e5b81d3c1"
-  },
-  {
-    "role": "user",
-    "text": "Hello.",
-    "timestamp": "2025-09-01T19:49:28.008Z",
-    "streamSid": "MZ3e5e0e0ac62f0eba8055650e5b81d3c1"
-  },
-  {
-    "role": "user_partial",
-    "text": "yeah please give me",
-    "timestamp": "2025-09-01T19:49:43.357Z",
-    "streamSid": "MZ3e5e0e0ac62f0eba8055650e5b81d3c1"
-  },
-  {
-    "role": "user_partial",
-    "text": "yeah please give me this",
-    "timestamp": "2025-09-01T19:49:43.666Z",
-    "streamSid": "MZ3e5e0e0ac62f0eba8055650e5b81d3c1"
-  },
-  {
-    "role": "user",
-    "text": "Yeah, please give me this.",
-    "timestamp": "2025-09-01T19:49:44.103Z",
-    "streamSid": "MZ3e5e0e0ac62f0eba8055650e5b81d3c1"
-  },
-  {
-    "role": "user_partial",
-    "text": "my name is",
-    "timestamp": "2025-09-01T19:52:58.402Z",
-    "streamSid": "MZ4e0d6f2a0db8c0e5e10ddf0c2b337e90"
-  },
-  {
-    "role": "user_partial",
-    "text": "my name is sahil",
-    "timestamp": "2025-09-01T19:52:59.037Z",
-    "streamSid": "MZ4e0d6f2a0db8c0e5e10ddf0c2b337e90"
-  },
-  {
-    "role": "user",
-    "text": "My name is Sahil.",
-    "timestamp": "2025-09-01T19:52:59.218Z",
-    "streamSid": "MZ4e0d6f2a0db8c0e5e10ddf0c2b337e90"
-  },
-  {
-    "role": "user",
-    "text": "",
-    "timestamp": "2025-09-01T19:53:19.180Z",
-    "streamSid": "MZ4e0d6f2a0db8c0e5e10ddf0c2b337e90"
-  },
-  {
-    "role": "user_partial",
-    "text": "my name",
-    "timestamp": "2025-09-01T19:54:04.141Z",
-    "streamSid": "MZbd0321ce74370e3fc055a72036e69f8c"
-  },
-  {
-    "role": "user_partial",
-    "text": "my name is",
-    "timestamp": "2025-09-01T19:54:04.342Z",
-    "streamSid": "MZbd0321ce74370e3fc055a72036e69f8c"
-  },
-  {
-    "role": "user",
-    "text": "My name is Sahil.",
-    "timestamp": "2025-09-01T19:54:04.822Z",
-    "streamSid": "MZbd0321ce74370e3fc055a72036e69f8c"
-  },
-  {
-    "role": "user",
-    "text": "",
-    "timestamp": "2025-09-01T19:54:21.908Z"
+    "text": "Hi there, how are you today? Is there something I can help you with or would you like some recommendations?",
+    "timestamp": "2025-09-02T06:51:15.426Z",
+    "streamSid": "MZc1c7db0ed03e83e4088677242be6b5f3"
   }
 ]

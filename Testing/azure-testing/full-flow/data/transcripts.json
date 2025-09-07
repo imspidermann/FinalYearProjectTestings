@@ -1,44 +1,56 @@
 [
   {
     "role": "user_partial",
+    "text": "ellen",
+    "timestamp": "2025-09-07T12:49:42.844Z",
+    "streamSid": "MZe368eb358ce5590662eeb350fe4522eb"
+  },
+  {
+    "role": "user",
+    "text": "Hello.",
+    "timestamp": "2025-09-07T12:49:42.855Z",
+    "streamSid": "MZe368eb358ce5590662eeb350fe4522eb"
+  },
+  {
+    "role": "assistant",
+    "text": "\"Hello! How can I assist you today?\"",
+    "timestamp": "2025-09-07T12:49:44.747Z",
+    "streamSid": "MZe368eb358ce5590662eeb350fe4522eb"
+  },
+  {
+    "role": "user_partial",
     "text": "hello",
-    "timestamp": "2025-09-02T06:49:10.893Z",
-    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
+    "timestamp": "2025-09-07T12:52:57.441Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   },
   {
     "role": "user",
     "text": "Hello.",
-    "timestamp": "2025-09-02T06:49:11.443Z",
-    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
+    "timestamp": "2025-09-07T12:52:59.821Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   },
   {
     "role": "assistant",
-    "text": "\"Hey, how can I help you today?\"",
-    "timestamp": "2025-09-02T06:49:17.524Z",
-    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
+    "text": "\"Hey, how's your day going so far? Is there something I can help you with or would you like to know the day's schedule?\"",
+    "timestamp": "2025-09-07T12:53:02.831Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   },
   {
-    "role": "user",
-    "text": "",
-    "timestamp": "2025-09-02T06:49:37.498Z",
-    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
-  },
-  {
-    "role": "assistant",
-    "text": "I didn't quite catch that, could you please repeat or provide more context about what you're looking for help with?",
-    "timestamp": "2025-09-02T06:49:52.647Z",
-    "streamSid": "MZf88feec4720217ed1f6ee3a37abbf36d"
+    "role": "user_partial",
+    "text": "hello",
+    "timestamp": "2025-09-07T12:53:14.605Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   },
   {
     "role": "user",
     "text": "Hello.",
-    "timestamp": "2025-09-02T06:51:11.510Z",
-    "streamSid": "MZc1c7db0ed03e83e4088677242be6b5f3"
+    "timestamp": "2025-09-07T12:53:15.282Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   },
   {
     "role": "assistant",
-    "text": "Hi there, how are you today? Is there something I can help you with or would you like some recommendations?",
-    "timestamp": "2025-09-02T06:51:15.426Z",
-    "streamSid": "MZc1c7db0ed03e83e4088677242be6b5f3"
+    "text": "\"Hi there. How can I help you today?\"",
+    "timestamp": "2025-09-07T12:53:16.597Z",
+    "streamSid": "MZfeaa3e3e67d6a57f00b4d5aac2ec3374"
   }
 ]

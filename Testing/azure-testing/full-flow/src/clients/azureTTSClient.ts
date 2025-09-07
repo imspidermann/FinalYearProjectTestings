@@ -1,14 +1,19 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import { stripRiffHeaderToRawMulaw } from "../utils/audioUtils";
 
-// Convert PCM16 -> 8-bit Âµ-law for Twilio
+// Convert PCM16 -> 8-bit µ-law for Twilio (Fixed implementation)
 function pcm16ToMulawSample(sample: number): number {
   const MULAW_MAX = 0x1FFF;
   const MULAW_BIAS = 33;
 
+  // Clamp the sample to 16-bit range first
+  sample = Math.max(-32768, Math.min(32767, sample));
+  
   let sign = sample < 0 ? 0x80 : 0;
   if (sample < 0) sample = -sample;
-  sample = Math.min(sample, MULAW_MAX);
+  
+  // Add bias and find exponent
+  sample += MULAW_BIAS;
+  if (sample > MULAW_MAX) sample = MULAW_MAX;
 
   let exponent = 7;
   for (let expMask = 0x4000; (sample & expMask) === 0 && exponent > 0; expMask >>= 1) {
@@ -26,6 +31,22 @@ function pcm16ToMulawBuffer(pcm16: Buffer): Buffer {
     out[i] = pcm16ToMulawSample(sample);
   }
   return out;
+}
+
+// Strip RIFF header and return raw PCM16 data
+function stripRiffHeaderToRawPCM16(buf: Buffer): Buffer {
+  if (buf.length >= 12 && buf.slice(0, 4).toString("ascii") === "RIFF") {
+    // Look for the "data" chunk
+    const dataIdx = buf.indexOf(Buffer.from("data"));
+    if (dataIdx !== -1) {
+      // Skip "data" + 4-byte size field
+      const audioStart = dataIdx + 8;
+      return buf.slice(audioStart);
+    }
+    // Fallback: assume standard 44-byte WAV header
+    return buf.slice(44);
+  }
+  return buf;
 }
 
 export class AzureTTSClient {
@@ -51,11 +72,12 @@ export class AzureTTSClient {
 
     const speechConfig = sdk.SpeechConfig.fromSubscription(this.key, this.region);
     speechConfig.speechSynthesisVoiceName = voiceName || "en-IN-NeerjaNeural";
-    // 8 kHz PCM16 for Twilio
-    // @ts-ignore
+    
+    // Use 8kHz, 16-bit, mono PCM - exactly what Twilio expects before µ-law conversion
     speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Riff8Khz16BitMonoPcm;
 
     let synthesizer: sdk.SpeechSynthesizer | null = null;
+    let isCanceled = false;
 
     const p = new Promise<void>((resolve, reject) => {
       synthesizer = new sdk.SpeechSynthesizer(speechConfig, undefined);
@@ -64,41 +86,85 @@ export class AzureTTSClient {
         text,
         result => {
           try {
-            if (result.audioData) {
-              const pcm16 = stripRiffHeaderToRawMulaw(Buffer.from(result.audioData));
-              const mulaw = pcm16ToMulawBuffer(pcm16);
-
-              // Chunk audio for Twilio
-              const MAX_CHUNK = 3200;
-              for (let i = 0; i < mulaw.length; i += MAX_CHUNK) {
-                const chunk = mulaw.slice(i, i + MAX_CHUNK);
-                onAudioChunk(chunk.toString("base64"));
-              }
+            if (isCanceled) {
+              console.log("TTS was canceled, skipping audio processing");
+              resolve();
+              return;
             }
 
-            // Signal end of stream
-            onAudioChunk("");
+            if (result.audioData && result.audioData.byteLength > 0) {
+              console.log(`TTS: Received ${result.audioData.byteLength} bytes of audio data`);
+              
+              // Convert ArrayBuffer to Buffer
+              const audioBuffer = Buffer.from(result.audioData);
+              
+              // Strip RIFF header to get raw PCM16
+              const pcm16 = stripRiffHeaderToRawPCM16(audioBuffer);
+              console.log(`TTS: PCM16 data size: ${pcm16.length} bytes`);
+              
+              // Convert PCM16 to µ-law
+              const mulaw = pcm16ToMulawBuffer(pcm16);
+              console.log(`TTS: µ-law data size: ${mulaw.length} bytes`);
 
-            console.log("TTS finished sending all chunks.");
+              // Send audio in chunks suitable for Twilio (160 bytes = 20ms at 8kHz)
+              const CHUNK_SIZE = 160;
+              let chunkCount = 0;
+              
+              for (let i = 0; i < mulaw.length; i += CHUNK_SIZE) {
+                if (isCanceled) break;
+                
+                const chunk = mulaw.slice(i, i + CHUNK_SIZE);
+                const base64Chunk = chunk.toString("base64");
+                
+                // Add small delay between chunks for proper timing
+                setTimeout(() => {
+                  if (!isCanceled) {
+                    onAudioChunk(base64Chunk);
+                  }
+                }, chunkCount * 20); // 20ms intervals
+                
+                chunkCount++;
+              }
+              
+              // Signal end of stream after all chunks are sent
+              setTimeout(() => {
+                if (!isCanceled) {
+                  onAudioChunk(""); // Empty string signals end
+                }
+              }, chunkCount * 20 + 100); // Small buffer after last chunk
+
+              console.log(`TTS: Scheduled ${chunkCount} chunks for streaming`);
+            } else {
+              console.warn("TTS: No audio data received");
+              onAudioChunk(""); // Signal end even if no audio
+            }
+
           } catch (err) {
-            console.error("TTS error:", err);
+            console.error("TTS processing error:", err);
+            onAudioChunk(""); // Signal end on error
           } finally {
             synthesizer?.close();
             resolve();
           }
         },
         err => {
-          try { synthesizer?.close(); } catch {}
+          console.error("TTS synthesis error:", err);
+          try { 
+            synthesizer?.close(); 
+          } catch {}
           reject(err);
         }
       );
     });
 
     const cancel = () => {
-      try { synthesizer?.close(); } catch {}
+      console.log("TTS: Canceling synthesis");
+      isCanceled = true;
+      try { 
+        synthesizer?.close(); 
+      } catch {}
     };
 
     return { promise: p, cancel };
   }
 }
-

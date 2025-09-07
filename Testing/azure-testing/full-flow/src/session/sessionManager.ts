@@ -154,7 +154,10 @@ function handleTwilioMessage(data: RawData) {
 
 /* ---------- LLM -> TTS Pipeline ---------- */
 async function handleFinalTranscript(userText: string) {
-  if (!session.twilioConn || !session.streamSid) return;
+  if (!session.twilioConn || !session.streamSid) {
+    console.warn("No Twilio connection available for response");
+    return;
+  }
 
   console.log("Processing user transcript:", userText);
   session.isAssistantSpeaking = true;
@@ -176,6 +179,13 @@ async function handleFinalTranscript(userText: string) {
   let sentenceCount = 0;
 
   try {
+    // Send a mark to indicate assistant response is starting
+    jsonSend(session.twilioConn, {
+      event: "mark",
+      streamSid: session.streamSid,
+      mark: { name: "assistant_start" },
+    });
+
     for await (const textChunk of streamLLM(prompt)) {
       fullAssistantText += textChunk;
       bufferText += textChunk;
@@ -236,6 +246,7 @@ async function handleFinalTranscript(userText: string) {
       item: { type: "response", item_id: itemId },
     });
 
+    // Send final mark to indicate completion
     jsonSend(session.twilioConn, {
       event: "mark",
       streamSid: session.streamSid,
@@ -264,8 +275,14 @@ export async function speakAndSend(
   console.log("TTS synthesizing:", text);
 
   const { promise, cancel } = tts.synthesizeTextStream(text, voice, (b64) => {
+    if (!session.twilioConn || session.twilioConn.readyState !== session.twilioConn.OPEN) {
+      console.warn("TTS: Twilio connection not available");
+      return;
+    }
+
     if (!b64) {
-      // End of stream signal
+      // End of stream signal - send empty payload
+      console.log("TTS: Sending end-of-stream signal");
       jsonSend(session.twilioConn, { 
         event: "media", 
         streamSid: session.streamSid, 

@@ -1,6 +1,5 @@
 <Response>
-  <Start>
+  <Connect>
     <Stream url="{{WS_URL}}"></Stream>
-  </Start>
-  <Pause length="1800"/>
+  </Connect>
 </Response>

@@ -58,7 +58,7 @@ function handleTwilioMessage(data: RawData) {
     case "start": {
       session.streamSid = msg.start.streamSid;
       session.latestMediaTimestamp = 0;
-      session.isAssistantSpeaking = false; // Add flag to track if assistant is speaking
+      session.isAssistantSpeaking = false;
 
       session.azureRecognizer = new AzureRecognizer({
         azureKey: AZURE_KEY,
@@ -112,16 +112,13 @@ function handleTwilioMessage(data: RawData) {
       const audioBuffer = Buffer.from(msg.media.payload, "base64");
       const pcm16 = mulawToPcm16LE(audioBuffer);
       
-      // Only push to recognizer if assistant is not speaking
       if (session.azureRecognizer && !session.isAssistantSpeaking) {
         session.azureRecognizer.pushAudioChunk(pcm16);
       }
 
-      // Only cancel TTS if we detect significant user audio while assistant is speaking
       if (session.currentTTSCancel && session.isAssistantSpeaking) {
-        // Add simple volume detection to avoid canceling on background noise
         const volume = calculateVolume(audioBuffer);
-        if (volume > 500) { // Adjust threshold as needed
+        if (volume > 500) {
           try {
             session.currentTTSCancel();
             session.isAssistantSpeaking = false;
@@ -152,6 +149,7 @@ function handleTwilioMessage(data: RawData) {
   }
 }
 
+
 /* ---------- LLM -> TTS Pipeline ---------- */
 async function handleFinalTranscript(userText: string) {
   if (!session.twilioConn || !session.streamSid) {
@@ -175,9 +173,7 @@ async function handleFinalTranscript(userText: string) {
   });
 
   let fullAssistantText = "";
-  let bufferText = "";
-  let sentenceCount = 0;
-
+  
   try {
     // Send a mark to indicate assistant response is starting
     jsonSend(session.twilioConn, {
@@ -186,52 +182,21 @@ async function handleFinalTranscript(userText: string) {
       mark: { name: "assistant_start" },
     });
 
+    // Await all LLM chunks and collect the full response
     for await (const textChunk of streamLLM(prompt)) {
       fullAssistantText += textChunk;
-      bufferText += textChunk;
-
+      
       // Send delta to frontend for display
       jsonSend(session.frontendConn, {
         type: "response.delta",
         item_id: itemId,
         delta: textChunk,
       });
-
-      // Check for sentence endings and buffer enough content
-      const sentences = bufferText.match(/[.!?]+/g);
-      if (sentences && sentences.length > 0 && bufferText.trim().length > 10) {
-        // Find the last complete sentence
-        const lastSentenceIndex = bufferText.lastIndexOf(sentences[sentences.length - 1]);
-        if (lastSentenceIndex !== -1) {
-          const completeSentence = bufferText.substring(0, lastSentenceIndex + 1).trim();
-          
-          if (completeSentence && completeSentence.length > 5) {
-            console.log(`Synthesizing sentence ${sentenceCount + 1}:`, completeSentence);
-            
-            // Synthesize and send the complete sentence
-            await speakAndSend(completeSentence, voice, tts, itemId);
-            
-            // Update buffer to remaining text
-            bufferText = bufferText.substring(lastSentenceIndex + 1);
-            sentenceCount++;
-          }
-        }
-      }
-
-      // Also send chunks when we have enough words (fallback for long sentences)
-      const wordCount = bufferText.split(' ').length;
-      if (wordCount >= 15) {
-        console.log("Synthesizing chunk:", bufferText.trim());
-        await speakAndSend(bufferText.trim(), voice, tts, itemId);
-        bufferText = "";
-      }
     }
 
-    // Handle any remaining text
-    if (bufferText.trim()) {
-      console.log("Synthesizing final chunk:", bufferText.trim());
-      await speakAndSend(bufferText.trim(), voice, tts, itemId);
-    }
+    // Now, with the full response, synthesize and send the audio.
+    console.log("Synthesizing final response:", fullAssistantText);
+    await speakAndSend(fullAssistantText.trim(), voice, tts, itemId);
 
     // Save the complete assistant response to transcripts
     appendTranscriptionRecord(TRANSCRIPTS_FILE, {
@@ -264,7 +229,10 @@ async function handleFinalTranscript(userText: string) {
   }
 }
 
-export async function speakAndSend(
+// Keep the speakAndSend function as is from the previous response.
+// The key is that it is now awaited, and only called once per user query.
+
+async function speakAndSend(
   text: string,
   voice: string,
   tts: AzureTTSClient,
@@ -272,33 +240,26 @@ export async function speakAndSend(
 ) {
   if (!text.trim()) return;
   
-  console.log("TTS synthesizing:", text);
-
   const { promise, cancel } = tts.synthesizeTextStream(text, voice, (b64) => {
     if (!session.twilioConn || session.twilioConn.readyState !== session.twilioConn.OPEN) {
       console.warn("TTS: Twilio connection not available");
+      cancel();
       return;
     }
 
     if (!b64) {
-      // End of stream signal - send empty payload
-      console.log("TTS: Sending end-of-stream signal");
-      jsonSend(session.twilioConn, { 
-        event: "media", 
-        streamSid: session.streamSid, 
-        media: { payload: "" } 
-      });
+      // Empty payload indicates end of stream
+      console.log("TTS: End of stream signal received");
+      // This is not needed for continuous streams but can be useful for debugging
       return;
     }
 
-    // Send audio chunk to Twilio
     jsonSend(session.twilioConn, {
       event: "media",
       streamSid: session.streamSid,
       media: { payload: b64 },
     });
 
-    // Also send to frontend for monitoring
     jsonSend(session.frontendConn, {
       type: "response.audio.delta",
       item_id: itemId,
@@ -307,19 +268,19 @@ export async function speakAndSend(
     });
   });
 
+  // Assign the cancel function to the session for interruption logic
   session.currentTTSCancel = cancel;
   
   try {
-    await promise;
-    console.log("TTS completed for text:", text.substring(0, 50) + "...");
+    await promise; // This will resolve when the TTS chunk is fully synthesized
   } catch (error) {
-    console.error("TTS error:", error);
+    console.error("TTS error during synthesis:", error);
   } finally {
-    session.currentTTSCancel = null;
+    // Note: Do not clear session.currentTTSCancel here.
+    // This is handled by the higher-level logic to allow a new TTS call to override.
   }
 }
 
-/* ---------- Helper Functions ---------- */
 function cleanupConnection(ws?: WebSocket) {
   if (!ws) return;
   try {
@@ -327,12 +288,11 @@ function cleanupConnection(ws?: WebSocket) {
   } catch {}
 }
 
-// Simple volume calculation for interruption detection
 function calculateVolume(buffer: Buffer): number {
   let sum = 0;
   for (let i = 0; i < buffer.length; i++) {
     const sample = buffer[i];
-    sum += Math.abs(sample - 128); // Adjust for mu-law offset
+    sum += Math.abs(sample - 128);
   }
   return sum / buffer.length;
 }

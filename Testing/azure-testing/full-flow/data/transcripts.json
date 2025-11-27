@@ -1,0 +1,74 @@
+[
+  {
+    "role": "user_partial",
+    "text": "hello",
+    "timestamp": "2025-11-27T14:45:48.020Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user",
+    "text": "Hello.",
+    "timestamp": "2025-11-27T14:45:48.660Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "assistant",
+    "text": "\"Hello, how can I assist you today?\"",
+    "timestamp": "2025-11-27T14:45:50.070Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you",
+    "timestamp": "2025-11-27T14:45:58.594Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain",
+    "timestamp": "2025-11-27T14:45:58.893Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what",
+    "timestamp": "2025-11-27T14:45:59.201Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what is",
+    "timestamp": "2025-11-27T14:45:59.594Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user_partial",
+    "text": "can you explain me what is universe",
+    "timestamp": "2025-11-27T14:45:59.897Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user",
+    "text": "Can you explain me what is universe?",
+    "timestamp": "2025-11-27T14:46:00.430Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "assistant",
+    "text": "The universe is literally everything that exists. It's all matter, energy, space, and time – a vast, ever-expanding totality. Imagine a huge cosmic sea with stars, galaxies, planets, and even dark energy and matter, all swirling together in an infinite dance.",
+    "timestamp": "2025-11-27T14:46:02.531Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "user",
+    "text": "",
+    "timestamp": "2025-11-27T14:46:22.424Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  },
+  {
+    "role": "assistant",
+    "text": "However, it seems like you didn't say anything. Could you please repeat or ask a question so I can assist you?",
+    "timestamp": "2025-11-27T14:46:23.654Z",
+    "streamSid": "MZ38ef245d3a9bb82b1012d921730bbacb"
+  }
+]
